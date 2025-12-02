@@ -1,5 +1,5 @@
 import rough from "roughjs/bin/rough";
-import { getStroke } from "perfect-freehand";
+//import { getStroke } from "perfect-freehand";
 
 import {
   type GlobalPoint,
@@ -80,6 +80,7 @@ import type {
 
 import type { StrokeOptions } from "perfect-freehand";
 import type { RoughCanvas } from "roughjs/bin/canvas";
+import { getStroke } from "./freedraw";
 
 // using a stronger invert (100% vs our regular 93%) and saturate
 // as a temp hack to make images in dark theme look closer to original
@@ -1102,10 +1103,10 @@ export function getFreedrawOutlineAsSegments(
 export function getFreedrawOutlinePoints(element: ExcalidrawFreeDrawElement) {
   // If input points are empty (should they ever be?) return a dot
   const inputPoints = element.simulatePressure
-    ? element.points
-    : element.points.length
-    ? element.points.map(([x, y], i) => [x, y, element.pressures[i]])
-    : [[0, 0, 0.5]];
+    ? (element.points as readonly [number, number][])
+    : ((element.points.length
+        ? element.points.map(([x, y], i) => [x, y, element.pressures[i]])
+        : [[0, 0, 0.5]]) as [number, number, number][]);
 
   // Consider changing the options for simulated pressure vs real pressure
   const options: StrokeOptions = {
@@ -1118,7 +1119,7 @@ export function getFreedrawOutlinePoints(element: ExcalidrawFreeDrawElement) {
     last: true,
   };
 
-  return getStroke(inputPoints as number[][], options) as [number, number][];
+  return getStroke(inputPoints, options, element) as [number, number][];
 }
 
 function med(A: number[], B: number[]) {
